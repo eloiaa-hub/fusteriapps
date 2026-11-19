@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MaderaIA — Diseño de muebles · Por Eloi A.A.</title>
+<meta name="description" content="Programas para diseñar muebles en el aula: boceto a render 3D, plano de taller, muebles por rebanadas, ensambles de carpintería y matemáticas para la madera. Funcionan en el navegador, sin instalar nada.">
+<style>
+  :root {
+    --acento: #005A9C; --acento-suave: rgba(0,90,156,.10); --fondo: #eef2f6; --panel: #ffffff; --texto: #1d2733; --texto-sec: #5b6878;
+    --borde: #d7dee7; --sombra: 0 6px 22px rgba(20,40,70,.10); --verde: #00897b; --naranja: #c8741a; --madera: #9a6a2f; --madera-suave: rgba(154,106,47,.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --acento: #5aa9e6; --acento-suave: rgba(90,169,230,.14); --fondo: #14181d; --panel: #1d232a; --texto: #e6ebf0; --texto-sec: #9aa7b5; --borde: #2e3843; --sombra: 0 6px 22px rgba(0,0,0,.35); --verde: #4dd0c4; --naranja: #f0a35e; --madera: #e0ad6c; --madera-suave: rgba(224,173,108,.14); }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif; background: var(--fondo); color: var(--texto); line-height: 1.5; }
+  .envoltura { max-width: 1120px; margin: 0 auto; padding: 32px 22px 40px; }
+  header { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+  .logo { width: 58px; height: 58px; flex: 0 0 auto; }
+  h1 { margin: 0; font-size: clamp(24px, 3.6vw, 36px); letter-spacing: -.01em; }
+  h1 span { color: var(--madera); }
+  .sub { margin: 2px 0 0; color: var(--texto-sec); font-size: 15px; }
+  .barra { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 24px 0 6px; }
+  .buscar { flex: 1 1 260px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--borde); background: var(--panel); color: var(--texto); font: inherit; font-size: 15px; box-shadow: var(--sombra); }
+  .buscar:focus { outline: 2px solid var(--acento); outline-offset: 1px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--borde); background: var(--panel); color: var(--texto-sec); padding: 7px 13px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .chip.activo { background: var(--acento); border-color: var(--acento); color: #fff; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--texto-sec); margin: 30px 0 12px; display: flex; align-items: center; gap: 10px; }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--borde); }
+  .fichas { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+  .ficha { background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--sombra); transition: transform .12s, border-color .12s; }
+  .ficha:hover { transform: translateY(-2px); border-color: var(--acento); }
+  .ficha.destacada { border-width: 2px; border-color: var(--acento); }
+  .cab { display: flex; align-items: center; gap: 12px; }
+  .icono { width: 46px; height: 46px; flex: 0 0 auto; border-radius: 11px; background: var(--acento-suave); display: flex; align-items: center; justify-content: center; }
+  .icono svg { width: 27px; height: 27px; stroke: var(--acento); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .madera .icono { background: var(--madera-suave); } .madera .icono svg { stroke: var(--madera); }
+  .nombre { font-size: 17px; font-weight: 700; margin: 0; }
+  .etiqueta { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 9px; background: var(--acento-suave); color: var(--acento); margin-left: 4px; vertical-align: middle; white-space: nowrap; }
+  .etiqueta.nueva { background: rgba(0,137,123,.13); color: var(--verde); }
+  .repo { font-family: Consolas, 'Courier New', monospace; font-size: 12px; color: var(--texto-sec); }
+  .desc { margin: 0; font-size: 14px; color: var(--texto-sec); flex: 1; }
+  .fecha { font-size: 12px; color: var(--texto-sec); min-height: 1em; }
+  .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+  .boton { display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px; border-radius: 8px; background: var(--acento); color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; }
+  .madera .boton { background: var(--madera); }
+  .boton.sec { background: transparent; color: var(--acento); border: 1px solid var(--acento); }
+  .madera .boton.sec { background: transparent; color: var(--madera); border-color: var(--madera); }
+  .boton:hover { filter: brightness(1.08); }
+  .lista { background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; box-shadow: var(--sombra); overflow: hidden; }
+  .fila { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--borde); flex-wrap: wrap; }
+  .fila:first-child { border-top: 0; }
+  .fila .info { flex: 1 1 260px; }
+  .fila b { font-size: 15px; } .fila small { display: block; color: var(--texto-sec); font-size: 13px; }
+  .fila a { color: var(--acento); font-weight: 600; font-size: 13.5px; text-decoration: none; }
+  .fila a:hover { text-decoration: underline; }
+  .avisos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 30px; }
+  .aviso { background: var(--panel); border: 1px solid var(--borde); border-radius: 12px; padding: 14px 16px; font-size: 13.5px; color: var(--texto-sec); }
+  .aviso b { color: var(--texto); display: block; margin-bottom: 3px; }
+  .vacio { display: none; text-align: center; color: var(--texto-sec); padding: 30px; }
+  .oculto { display: none !important; }
+  footer { margin-top: 34px; text-align: center; font-size: 12.5px; color: var(--texto-sec); }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="envoltura">
+  <header>
+    <svg class="logo" viewBox="0 0 58 58" aria-hidden="true">
+      <rect x="1" y="1" width="56" height="56" rx="14" fill="#9a6a2f"/>
+      <path d="M14 22 H44 V27 H14 Z" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+      <path d="M18 27 V44 M40 27 V44" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M18 36 H40" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M17 15 q6 -3 12 0 t12 0" fill="none" stroke="#f3d3a4" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <h1>Madera<span>IA</span></h1>
+      <p class="sub">Programas para diseñar muebles en el aula: del boceto al render, al plano de taller y a la CNC · Por Eloi A.A.</p>
+    </div>
+  </header>
+
+  <div class="barra">
+    <input class="buscar" id="buscar" type="search" placeholder="Buscar un programa… (render, plano, rebanadas, ensambles, Pitágoras…)" aria-label="Buscar">
+  </div>
+
+  <section data-seccion="madera">
+    <h2>Programas</h2>
+    <div class="fichas">
+
+      <article class="ficha madera" data-cat="madera manual" data-repo="Boceto-Render-3D" data-claves="boceto render 3d mueblecad plano taller imagen realista">
+        <div class="cab">
+          <div class="icono"><svg viewBox="0 0 24 24"><path d="M12 3 L20 7.5 V16.5 L12 21 L4 16.5 V7.5 Z"/><path d="M4 7.5 L12 12 L20 7.5"/><path d="M12 12 V21"/></svg></div>
+          <div><p class="nombre">Boceto a Render 3D</p><span class="repo">Boceto-Render-3D</span></div>
+        </div>
+        <p class="desc">Del boceto del mueble a la imagen realista por piezas (alzado, planta y perfil). Sin internet.</p>
+        <div class="fecha"></div>
+        <div class="acciones">
+          <a class="boton" href="https://eloiaa-hub.github.io/Boceto-Render-3D/">Abrir</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Boceto-Render-3D/ayuda/manual.html">Manual</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Boceto-Render-3D/ayuda/manual.pdf">PDF</a>
+        </div>
+      </article>
+      <article class="ficha madera" data-cat="madera manual" data-repo="mueblecad" data-claves="mueblecad mueble cad plano taller 2d despiece cotas">
+        <div class="cab">
+          <div class="icono"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M5 10 h14 M5 15 h14"/><path d="M11 6.5 h2 M11 12.5 h2 M11 17.5 h2"/></svg></div>
+          <div><p class="nombre">Mueble CAD</p><span class="repo">Boceto-Render-3D · MUEBLECAD 2D</span></div>
+        </div>
+        <p class="desc">Diseña el mueble en 2D y saca el plano de taller acotado. Va junto con Boceto a Render 3D.</p>
+        <div class="acciones">
+          <a class="boton" href="https://eloiaa-hub.github.io/Boceto-Render-3D/assets/mueblecad/mueblecad.html">Abrir</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Boceto-Render-3D/assets/mueblecad/manual_mueblecad.html">Manual</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Boceto-Render-3D/assets/mueblecad/manual_mueblecad.pdf">PDF</a>
+        </div>
+      </article>
+      <article class="ficha madera" data-cat="madera manual" data-repo="Made-rebanadas" data-claves="rebanadas paramétricas parametricas costillas varillas dxf orgánicos slice waffle">
+        <div class="cab">
+          <div class="icono"><svg viewBox="0 0 24 24"><path d="M5 20 V9 q0 -5 3 -5"/><path d="M10 20 V7 q0 -4 3 -4"/><path d="M15 20 V8 q0 -4 3 -4"/><path d="M3 14 h18"/></svg></div>
+          <div><p class="nombre">Made-rebanadas <span class="etiqueta nueva">Nuevo</span></p><span class="repo">Made-rebanadas</span></div>
+        </div>
+        <p class="desc">Muebles orgánicos hechos con rebanadas de tablero: diseño paramétrico, comprobación de varillas y DXF para la CNC.</p>
+        <div class="fecha"></div>
+        <div class="acciones">
+          <a class="boton" href="https://eloiaa-hub.github.io/Made-rebanadas/">Abrir</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Made-rebanadas/ayuda/manual.html">Manual</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Made-rebanadas/ayuda/manual.pdf">PDF</a>
+        </div>
+      </article>
+      <article class="ficha madera" data-cat="madera manual" data-repo="Ensambles-Dossier" data-claves="ensambles caja espiga milano horquilla lengüeta lengueta 3d láminas laminas cuaderno prácticas practicas apuntes a mano dxf">
+        <div class="cab">
+          <div class="icono"><svg viewBox="0 0 24 24"><path d="M3 9 h8 v3 h3 v-3 h7 v6 H3 Z"/><path d="M11 12 v3 M14 12 v3"/><path d="M11 9 V5 h3 v4"/></svg></div>
+          <div><p class="nombre">Ensambles de carpintería <span class="etiqueta nueva">Nuevo</span></p><span class="repo">Ensambles-Dossier</span></div>
+        </div>
+        <p class="desc">21 ensambles en 3D: cómo se montan y cómo se hacen a mano paso a paso, errores típicos, láminas acotadas, cuaderno de prácticas y apuntes. Versión del profesor y del alumnado.</p>
+        <div class="fecha"></div>
+        <div class="acciones">
+          <a class="boton" href="https://eloiaa-hub.github.io/Ensambles-Dossier/">Abrir</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Ensambles-Dossier/ensambles_3d_alumno.html">Alumnado</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Ensambles-Dossier/apuntes_ensambles_a_mano.html">Apuntes</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Ensambles-Dossier/manual_ensambles.html">Manual</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Ensambles-Dossier/manual_ensambles.pdf">PDF</a>
+        </div>
+      </article>
+      <article class="ficha madera" data-cat="madera manual" data-repo="Made-maticas" data-claves="matemáticas matematicas pitágoras pitagoras trigonometría trigonometria ángulos angulos medidas apuntes">
+        <div class="cab">
+          <div class="icono"><svg viewBox="0 0 24 24"><path d="M4 20 H20 L4 6 Z"/><path d="M4 16 h4 v4"/><path d="M14 20 a5 5 0 0 0 -1.6 -3.7"/></svg></div>
+          <div><p class="nombre">Made-máticas</p><span class="repo">Made-maticas</span></div>
+        </div>
+        <p class="desc">Matemáticas para la madera: medidas y ángulos en carpintería con Pitágoras, trigonometría y la calculadora. Apuntes y programa.</p>
+        <div class="fecha"></div>
+        <div class="acciones">
+          <a class="boton" href="https://eloiaa-hub.github.io/Made-maticas/programa/">Programa</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Made-maticas/apuntes/">Apuntes</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Made-maticas/">Portada</a>
+          <a class="boton sec" href="https://eloiaa-hub.github.io/Made-maticas/programa/guia.html">Manual</a>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <p class="vacio" id="vacio">No hay ningún programa que coincida con la búsqueda.</p>
+
+  <div class="avisos">
+    <div class="aviso"><b>💻 Sin instalar nada</b>Los programas funcionan en Chrome, Edge o Firefox, en el ordenador del aula o en casa.</div>
+    <div class="aviso"><b>📘 Con manual</b>Cada programa trae su manual en HTML y en PDF para consultarlo o imprimirlo.</div>
+    <div class="aviso"><b>🪵 Para el taller</b>Del diseño en pantalla al plano acotado, al despiece y al archivo para la CNC.</div>
+  </div>
+
+  <footer>MaderaIA · © 2026 Eloi A.A.</footer>
+</div>
+
+<script>
+(function () {
+  var buscar = document.getElementById('buscar');
+  function quitarTildes(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  function aplicar() {
+    var q = quitarTildes(buscar.value.trim()), visibles = 0;
+    document.querySelectorAll('[data-cat]').forEach(function (el) {
+      var texto = quitarTildes(el.textContent + ' ' + (el.getAttribute('data-claves') || ''));
+      var ok = !q || q.split(/\s+/).every(function (p) { return texto.indexOf(p) >= 0; });
+      el.classList.toggle('oculto', !ok); if (ok) visibles++;
+    });
+    document.getElementById('vacio').style.display = visibles ? 'none' : 'block';
+  }
+  buscar.addEventListener('input', aplicar);
+
+  // Fecha de la última actualización de cada programa (si no hay internet, no pasa nada)
+  fetch('https://api.github.com/users/eloiaa-hub/repos?per_page=100')
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function (repos) {
+      repos.forEach(function (r) {
+        document.querySelectorAll('[data-repo="' + r.name + '"] .fecha').forEach(function (f) {
+          f.textContent = 'Actualizado el ' + new Date(r.pushed_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        });
+      });
+    })
+    .catch(function () {});
+})();
+</script>
+</body>
+</html>
