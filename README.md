@@ -1,4 +1,4 @@
-# MaderaIA
+# MadeProgramas
 
 Portal de los programas de diseño de muebles de Eloi A.A. para el alumnado.
 
